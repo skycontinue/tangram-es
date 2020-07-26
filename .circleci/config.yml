@@ -74,7 +74,7 @@ jobs:
       - run: zip ~/pod.zip LICENSE
       - store_artifacts:
           path: ~/pod.zip
-  build-deploy-macos-snapshot:
+  build-macos:
     macos:
       xcode: "11.4.1"
     environment:
@@ -84,9 +84,9 @@ jobs:
       - checkout
       - run: git submodule update --init
       # Install dependencies.
-      - run: brew install cmake
+      - run: brew install cmake ninja
       # Build the MacOS demo app and package it into demo.zip
-      - run: make osx -j 2 MACOSX_DEPLOYMENT_TARGET=10.10.0
+      - run: make osx MACOSX_DEPLOYMENT_TARGET=10.10.0 CMAKE_OPTIONS="-GNinja"
       # To produce the intended structure within the zip archive, we must cd to each file's location.
       - run: cd build/osx && zip -r ~/demo.zip tangram.app
       - store_artifacts:
@@ -128,6 +128,7 @@ workflows:
     jobs:
       # Run on all pushes
       - build-test-linux
+      - build-macos
       # Run on pushes to all branches except master
       - build-android:
           filters:
@@ -139,10 +140,6 @@ workflows:
               ignore: master
       # Run on pushes to master
       - build-deploy-android-snapshot:
-          filters:
-            branches:
-              only: master
-      - build-deploy-macos-snapshot:
           filters:
             branches:
               only: master
